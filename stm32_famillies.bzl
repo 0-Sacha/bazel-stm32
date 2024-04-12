@@ -79,9 +79,9 @@ def stm32_families_lut(stm32_families):
     """
     lut = {}
     for familly in stm32_families:
-        if len(familly.familly_name) != 5:
+        if len(familly.familly_name) != 7:
             # buildifier: disable=print
-            print("STM32 Familly name not len of 5: {}".format(familly.familly_name))
+            print("STM32 Familly name not len of 7: {}".format(familly.familly_name))
         lut[familly.familly_name.upper()] = familly
     return lut
 

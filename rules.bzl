@@ -13,8 +13,16 @@ def _stm32_rules_impl(rctx):
         "%{MCU_ID}": rctx.attr.stm32_mcu,
         "%{MCU_FAMILLY}": rctx.attr.stm32_familly,
 
-        "%{target_compatible_with_packed}": json.encode(target_compatible_with).replace("\"", "\\\"")
+        "%{mcu_startupfile}": rctx.attr.mcu_startupfile,
+
+        "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
+        "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
     }
+    rctx.template(
+        "BUILD",
+        Label("//templates:BUILD.tpl"),
+        substitutions
+    )
     rctx.template(
         "rules.bzl",
         Label("//templates:rules.bzl.tpl"),
@@ -27,8 +35,10 @@ _stm32_rules = repository_rule(
 
         'stm32_mcu': attr.string(mandatory = True),
         'stm32_familly': attr.string(mandatory = True),
+        'mcu_startupfile': attr.string(mandatory = True),
 
-        'target_compatible_with': attr.string_list(default = [])
+        'toolchain_mcu_constraint': attr.string_list(default = []),
+        'target_compatible_with': attr.string_list(default = []),
     },
     local = False,
     implementation = _stm32_rules_impl,
@@ -86,15 +96,15 @@ def stm32_toolchain(
     stm32_mcu = stm32_mcu.upper()
     stm32_familly = stm32_mcu[:7]
 
-    defines.append("USE_HAL_DRIVER")
-    includedirs += [
+    defines = defines + [ "USE_HAL_DRIVER" ]
+    includedirs = includedirs + [
         "-ICore/Inc",
         "-IDrivers/{stm32_familly}xx_HAL_Driver/Inc".format(stm32_familly = stm32_familly),
         "-IDrivers/{stm32_familly}xx_HAL_Driver/Inc/Legacy".format(stm32_familly = stm32_familly),
         "-IDrivers/CMSIS/Device/ST/{stm32_familly}xx/Include".format(stm32_familly = stm32_familly),
         "-IDrivers/CMSIS/Include"
     ]
-    linkopts += [
+    linkopts = linkopts + [
         "-lc",
         "-lm",
         "-lnosys",
@@ -115,16 +125,8 @@ def stm32_toolchain(
 
     toolchain_mcu_constraint = [
         "@platforms//cpu:{}".format(stm32_familly_info.arm_cpu_version),
-        "@bazel_stm32//stm32_famillies:{}".format(stm32_familly.lower()),
+        "@bazel_stm32//:{}".format(stm32_familly.lower()),
     ]
-
-    native.platform(
-        name = mcu_id.lower(),
-        constraint_values = toolchain_mcu_constraint
-    )
-
-    # TODO: Check whether an constraint_value can be usefull
-    # native.constraint_value(name = mcu_id.lower(), constraint_setting = "")
 
     if use_mcu_constraint:
         target_compatible_with = target_compatible_with + toolchain_mcu_constraint
@@ -147,18 +149,12 @@ def stm32_toolchain(
         target_compatible_with = target_compatible_with,
     )
 
-    native.cc_library(
-        name = "{}_startup".format(stm32_mcu),
-        srcs = [ mcu_startupfile ],
-        copts = [ "-x", "assembler-with-cpp" ],
-        target_compatible_with = target_compatible_with,
-        visibility = ["//visibility:public"],
-    )
-
     _stm32_rules(
         name = name,
         arm_none_eabi_repo_name = "arm-none-eabi-" + stm32_mcu,
         stm32_mcu = stm32_mcu,
         stm32_familly = stm32_familly,
+        mcu_startupfile = mcu_startupfile,
+        toolchain_mcu_constraint = toolchain_mcu_constraint,
         target_compatible_with = target_compatible_with,
     )
