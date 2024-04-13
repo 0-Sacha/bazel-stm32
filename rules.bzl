@@ -114,10 +114,10 @@ def stm32_toolchain(
     stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
     mcu = [ stm32_familly_info.cpu, "-mthumb" ]
     if hasattr(stm32_familly_info, "fpu") and stm32_familly_info.fpu != None:
-        mcu += [ stm32_familly_info.fpu, stm32_familly_info.fpu_abi ]
+        mcu += [ stm32_familly_info.fpu_abi, stm32_familly_info.fpu ]
 
-    copts += mcu + [ "-D{}".format(mcu_device_group) ]
-    linkopts +=  mcu + [ "-T{}".format(mcu_ldscript) ]
+    copts = mcu + [ "-D{}".format(mcu_device_group) ] + copts
+    linkopts =  mcu + [ "-T{}".format(mcu_ldscript) ] + linkopts
 
     if gc_sections:
         copts += [ "-fdata-sections", "-ffunction-sections" ]

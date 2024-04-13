@@ -21,7 +21,7 @@ STM32F2 = struct(
     arm_cpu_version = "armv7e-mf",
     cpu = "-mcpu=cortex-m4",
     fpu = "-mfpu=fpv4-sp-d16",
-    fpu_abi = "-mfloat-abi=hard",
+    fpu_abi = "-mfloat-abi=soft",
 )
 
 # ARM Cortex-M4 with FPU
@@ -30,7 +30,7 @@ STM32F3 = struct(
     arm_cpu_version = "armv7e-mf",
     cpu = "-mcpu=cortex-m4",
     fpu = "-mfpu=fpv4-sp-d16",
-    fpu_abi = "-mfloat-abi=hard",
+    fpu_abi = "-mfloat-abi=soft",
 )
 
 # ARM Cortex-M4 with FPU
@@ -39,7 +39,7 @@ STM32F4 = struct(
     arm_cpu_version = "armv7e-mf",
     cpu = "-mcpu=cortex-m4",
     fpu = "-mfpu=fpv4-sp-d16",
-    fpu_abi = "-mfloat-abi=hard",
+    fpu_abi = "-mfloat-abi=soft",
 )
 
 # ARM Cortex-M4 with FPU
@@ -48,7 +48,7 @@ STM32F7 = struct(
     arm_cpu_version = "armv7e-mf",
     cpu = "-mcpu=cortex-m7",
     fpu = "-mfpu=fpv4-sp-d16",
-    fpu_abi = "-mfloat-abi=hard",
+    fpu_abi = "-mfloat-abi=soft",
 )
 
 # ARM Cortex-M4 with FPU
@@ -57,7 +57,7 @@ STM32H5 = struct(
     arm_cpu_version = "armv8-m",
     cpu = "-mcpu=cortex-m33",
     fpu = "-mfpu=fpv4-sp-d16",
-    fpu_abi = "-mfloat-abi=hard",
+    fpu_abi = "-mfloat-abi=soft",
 )
 
 # ARM Cortex-M4 with FPU
@@ -66,7 +66,7 @@ STM32H5 = struct(
 #     arm_cpu_version = "F7: armv7e-mf; F4: armv7e-mf",
 #     cpu = "-mcpu=cortex-m4",
 #     fpu = "-mfpu=fpv4-sp-d16",
-#     fpu_abi = "-mfloat-abi=hard",
+#     fpu_abi = "-mfloat-abi=soft",
 # )
 
 def stm32_families_lut(stm32_families):
