@@ -1,6 +1,6 @@
 ""
 
-load("@bazel_arm//:rules.bzl", "arm_none_eabi_toolchain")
+load("@bazel_arm//:rules.bzl", "arm_toolchain")
 load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 
 def _stm32_rules_impl(rctx):
@@ -131,9 +131,10 @@ def stm32_toolchain(
     if use_mcu_constraint:
         target_compatible_with = target_compatible_with + toolchain_mcu_constraint
 
-    arm_none_eabi_toolchain(
+    arm_toolchain(
         name = "arm-none-eabi-" + stm32_mcu,
-        version = arm_none_eabi_version,
+        arm_toolchain_type = "arm-none-eabi",
+        arm_toolchain_version = arm_none_eabi_version,
 
         target_name = stm32_familly,
         target_cpu = stm32_mcu[len(stm32_familly):],

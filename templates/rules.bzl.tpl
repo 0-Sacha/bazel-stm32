@@ -1,7 +1,7 @@
 """
 """
 
-load("@%{arm_none_eabi_repo_name}//:rules.bzl", "arm_none_eabi_binary")
+load("@%{arm_none_eabi_repo_name}//:rules.bzl", "arm_binary")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def stm32_platform(name = "%{MCU_ID}"):
@@ -18,8 +18,8 @@ def stm32_binary(name, deps = [], **kwargs):
 
     Args:
         name: The output binaries name
-        deps: The deps list to forward to arm_none_eabi_binary -> cc_binary
-        **kwargs: All others arm_none_eabi_binary attributes
+        deps: The deps list to forward to arm_binary -> cc_binary
+        **kwargs: All others arm_binary attributes
     """
     maybe(
         native.cc_library,
@@ -30,7 +30,7 @@ def stm32_binary(name, deps = [], **kwargs):
         visibility = ["//visibility:public"],
     )
 
-    arm_none_eabi_binary(
+    arm_binary(
         name = name,
         deps = [ "%{MCU_ID}_startup" ] + deps,
         target_compatible_with = %{target_compatible_with},
