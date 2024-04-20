@@ -1,6 +1,6 @@
 ""
 
-load("@bazel_arm_none_eabi//:rules.bzl", "arm_none_eabi_toolchain")
+load("@bazel_arm//:rules.bzl", "arm_none_eabi_toolchain")
 load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 
 def _stm32_rules_impl(rctx):
