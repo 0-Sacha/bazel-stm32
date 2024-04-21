@@ -1,6 +1,6 @@
 ""
 
-load("@bazel_arm_none_eabi//:rules.bzl", "arm_none_eabi_toolchain")
+load("@bazel_arm//:rules.bzl", "arm_toolchain")
 load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 
 def _stm32_rules_impl(rctx):
@@ -64,7 +64,9 @@ def stm32_toolchain(
         use_mcu_constraint = True,
 
         target_compatible_with = [],
+
         arm_none_eabi_version = "latest",
+        arm_toolchain_package = None,
     ):
     """STM32 toolchain
 
@@ -92,6 +94,7 @@ def stm32_toolchain(
         target_compatible_with: The target_compatible_with list for the toolchain
 
         arm_none_eabi_version: The arm-none-eabi archive version
+        arm_toolchain_package: The arm_toolchain to use
     """
     stm32_mcu = stm32_mcu.upper()
     stm32_familly = stm32_mcu[:7]
@@ -131,27 +134,30 @@ def stm32_toolchain(
     if use_mcu_constraint:
         target_compatible_with = target_compatible_with + toolchain_mcu_constraint
 
-    arm_none_eabi_toolchain(
-        name = "arm-none-eabi-" + stm32_mcu,
-        version = arm_none_eabi_version,
+    if arm_toolchain_package == None:
+        arm_toolchain_package = "arm-none-eabi-" + stm32_mcu
+        arm_toolchain(
+            name = "arm-none-eabi-" + stm32_mcu,
+            arm_toolchain_type = "arm-none-eabi",
+            arm_toolchain_version = arm_none_eabi_version,
 
-        target_name = stm32_familly,
-        target_cpu = stm32_mcu[len(stm32_familly):],
+            target_name = stm32_familly,
+            target_cpu = stm32_mcu[len(stm32_familly):],
 
-        copts = copts,
-        conlyopts = conlyopts,
-        cxxopts = cxxopts,
-        linkopts = linkopts,
-        defines = defines,
-        includedirs = includedirs,
-        linkdirs = linkdirs,
+            copts = copts,
+            conlyopts = conlyopts,
+            cxxopts = cxxopts,
+            linkopts = linkopts,
+            defines = defines,
+            includedirs = includedirs,
+            linkdirs = linkdirs,
 
-        target_compatible_with = target_compatible_with,
-    )
+            target_compatible_with = target_compatible_with,
+        )
 
     _stm32_rules(
         name = name,
-        arm_none_eabi_repo_name = "arm-none-eabi-" + stm32_mcu,
+        arm_none_eabi_repo_name = arm_toolchain_package,
         stm32_mcu = stm32_mcu,
         stm32_familly = stm32_familly,
         mcu_startupfile = mcu_startupfile,
