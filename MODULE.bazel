@@ -1,0 +1,8 @@
+
+"""bazel_stm32
+"""
+module(
+    name = "bazel_stm32",
+    version = "0.0.1",
+    repo_name = "sacha_bazel_stm32",
+)
