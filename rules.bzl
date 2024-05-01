@@ -6,7 +6,7 @@ load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 def _stm32_rules_impl(rctx):
     substitutions = {
         "%{rctx_name}": rctx.name,
-        "%{toolchain_path_prefix}": "external/{}/".format(rctx.name),
+        "%{toolchain_path}": "external/{}/".format(rctx.name),
 
         "%{arm_none_eabi_repo_name}": rctx.attr.arm_none_eabi_repo_name,
 
@@ -15,6 +15,7 @@ def _stm32_rules_impl(rctx):
 
         "%{mcu_startupfile}": rctx.attr.mcu_startupfile,
 
+        "%{exec_compatible_with}": json.encode(rctx.attr.exec_compatible_with),
         "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
         "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
     }
