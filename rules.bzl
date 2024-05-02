@@ -6,7 +6,7 @@ load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 def _stm32_rules_impl(rctx):
     substitutions = {
         "%{rctx_name}": rctx.name,
-        "%{toolchain_path_prefix}": "external/{}/".format(rctx.name),
+        "%{toolchain_path}": "external/{}/".format(rctx.name),
 
         "%{arm_none_eabi_repo_name}": rctx.attr.arm_none_eabi_repo_name,
 
@@ -15,6 +15,7 @@ def _stm32_rules_impl(rctx):
 
         "%{mcu_startupfile}": rctx.attr.mcu_startupfile,
 
+        "%{exec_compatible_with}": json.encode(rctx.attr.exec_compatible_with),
         "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
         "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
     }
@@ -67,6 +68,8 @@ def stm32_toolchain(
 
         arm_none_eabi_version = "latest",
         arm_toolchain_package = None,
+
+        internal_arm_toolchain_auto_register = True
     ):
     """STM32 toolchain
 
@@ -95,6 +98,8 @@ def stm32_toolchain(
 
         arm_none_eabi_version: The arm-none-eabi archive version
         arm_toolchain_package: The arm_toolchain to use
+       
+        internal_arm_toolchain_auto_register: If the internal arm-none-eabi toolchain is registered to bazel using `register_toolchains`
     """
     stm32_mcu = stm32_mcu.upper()
     stm32_familly = stm32_mcu[:7]
@@ -153,6 +158,8 @@ def stm32_toolchain(
             linkdirs = linkdirs,
 
             target_compatible_with = target_compatible_with,
+
+            auto_register_toolchain = internal_arm_toolchain_auto_register,
         )
 
     _stm32_rules(

@@ -1,6 +1,7 @@
-
 """bazel_stm32
+
 """
+
 module(
     name = "bazel_stm32",
     version = "0.0.1",
