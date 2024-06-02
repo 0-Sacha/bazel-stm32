@@ -16,8 +16,9 @@ def _stm32_rules_impl(rctx):
         "%{mcu_startupfile}": rctx.attr.mcu_startupfile,
 
         "%{exec_compatible_with}": json.encode(rctx.attr.exec_compatible_with),
-        "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
         "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
+
+        "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
     }
     rctx.template(
         "BUILD",
@@ -38,6 +39,7 @@ _stm32_rules = repository_rule(
         'stm32_familly': attr.string(mandatory = True),
         'mcu_startupfile': attr.string(mandatory = True),
 
+        'exec_compatible_with': attr.string_list(default = []),
         'toolchain_mcu_constraint': attr.string_list(default = []),
         'target_compatible_with': attr.string_list(default = []),
     },
@@ -64,6 +66,7 @@ def stm32_toolchain(
         gc_sections = True,
         use_mcu_constraint = True,
 
+        exec_compatible_with = [],
         target_compatible_with = [],
 
         arm_none_eabi_version = "latest",
@@ -94,6 +97,7 @@ def stm32_toolchain(
         gc_sections: Enable the garbage collection of unused sections
         use_mcu_constraint: Add the mcu_constraint list (cpu / stm32 familly) to the target_compatible_with
 
+        exec_compatible_with: The exec_compatible_with list for the toolchain
         target_compatible_with: The target_compatible_with list for the toolchain
 
         arm_none_eabi_version: The arm-none-eabi archive version
@@ -146,9 +150,6 @@ def stm32_toolchain(
             arm_toolchain_type = "arm-none-eabi",
             arm_toolchain_version = arm_none_eabi_version,
 
-            target_name = stm32_familly,
-            target_cpu = stm32_mcu[len(stm32_familly):],
-
             copts = copts,
             conlyopts = conlyopts,
             cxxopts = cxxopts,
@@ -157,6 +158,7 @@ def stm32_toolchain(
             includedirs = includedirs,
             linkdirs = linkdirs,
 
+            exec_compatible_with = exec_compatible_with,
             target_compatible_with = target_compatible_with,
 
             auto_register_toolchain = internal_arm_toolchain_auto_register,
