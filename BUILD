@@ -2,7 +2,6 @@
 """
 
 package(default_visibility = ["//visibility:public"])
-exports_files(glob(["*.bzl"]))
 
 constraint_setting(name = "stm32")
 constraint_setting(name = "stm32_familly")

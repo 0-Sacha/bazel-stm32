@@ -13,7 +13,7 @@ def _stm32_rules_impl(rctx):
         "%{MCU_ID}": rctx.attr.stm32_mcu,
         "%{MCU_FAMILLY}": rctx.attr.stm32_familly,
 
-        "%{mcu_startupfile}": rctx.attr.mcu_startupfile,
+        "%{mcu_startupfile}": rctx.path(rctx.attr.mcu_startupfile).basename,
 
         "%{exec_compatible_with}": json.encode(rctx.attr.exec_compatible_with),
         "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
@@ -37,7 +37,7 @@ _stm32_rules = repository_rule(
 
         'stm32_mcu': attr.string(mandatory = True),
         'stm32_familly': attr.string(mandatory = True),
-        'mcu_startupfile': attr.string(mandatory = True),
+        'mcu_startupfile': attr.label(mandatory = True, allow_single_file = True),
 
         'exec_compatible_with': attr.string_list(default = []),
         'toolchain_mcu_constraint': attr.string_list(default = []),
@@ -72,6 +72,8 @@ def stm32_toolchain(
         arm_none_eabi_version = "latest",
         arm_toolchain_package = None,
 
+        internal_arm_toolchain_extras_filegroup = "@bazel_utilities//:empty",
+        internal_arm_toolchain_local_download = True,
         internal_arm_toolchain_auto_register = True
     ):
     """STM32 toolchain
@@ -103,25 +105,12 @@ def stm32_toolchain(
         arm_none_eabi_version: The arm-none-eabi archive version
         arm_toolchain_package: The arm_toolchain to use
        
+        internal_arm_toolchain_extras_filegroup: internal_arm_toolchain_extras_filegroup
+        internal_arm_toolchain_local_download: If the internal arm-none-eabi toolchain is use external download
         internal_arm_toolchain_auto_register: If the internal arm-none-eabi toolchain is registered to bazel using `register_toolchains`
     """
     stm32_mcu = stm32_mcu.upper()
     stm32_familly = stm32_mcu[:7]
-
-    defines = defines + [ "USE_HAL_DRIVER" ]
-    includedirs = includedirs + [
-        "-ICore/Inc",
-        "-IDrivers/{stm32_familly}xx_HAL_Driver/Inc".format(stm32_familly = stm32_familly),
-        "-IDrivers/{stm32_familly}xx_HAL_Driver/Inc/Legacy".format(stm32_familly = stm32_familly),
-        "-IDrivers/CMSIS/Device/ST/{stm32_familly}xx/Include".format(stm32_familly = stm32_familly),
-        "-IDrivers/CMSIS/Include"
-    ]
-    linkopts = linkopts + [
-        "-lc",
-        "-lm",
-        "-lnosys",
-        "-specs=nosys.specs",
-    ]
 
     stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
     mcu = [ stm32_familly_info.cpu, "-mthumb" ]
@@ -130,6 +119,24 @@ def stm32_toolchain(
 
     copts = mcu + [ "-D{}".format(mcu_device_group) ] + copts
     linkopts =  mcu + [ "-T{}".format(mcu_ldscript) ] + linkopts
+
+    defines = defines + [ "USE_HAL_DRIVER" ]
+    includedirs = includedirs + [
+        "Core/Inc",
+        "Drivers/{stm32_familly}xx_HAL_Driver/Inc".format(stm32_familly = stm32_familly),
+        "Drivers/{stm32_familly}xx_HAL_Driver/Inc/Legacy".format(stm32_familly = stm32_familly),
+        "Drivers/CMSIS/Device/ST/{stm32_familly}xx/Include".format(stm32_familly = stm32_familly),
+        "Drivers/CMSIS/Include"
+    ]
+    copts = copts + [
+        "-specs=nosys.specs",
+    ]
+    linkopts = linkopts + [
+        "-lc",
+        "-lm",
+        "-lnosys",
+        "-specs=nosys.specs",
+    ]    
 
     if gc_sections:
         copts += [ "-fdata-sections", "-ffunction-sections" ]
@@ -161,6 +168,9 @@ def stm32_toolchain(
             exec_compatible_with = exec_compatible_with,
             target_compatible_with = target_compatible_with,
 
+            toolchain_extras_filegroup = internal_arm_toolchain_extras_filegroup,
+
+            local_download =  internal_arm_toolchain_local_download,
             auto_register_toolchain = internal_arm_toolchain_auto_register,
         )
 
