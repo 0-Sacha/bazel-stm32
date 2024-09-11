@@ -63,6 +63,11 @@ def stm32_toolchain(
         includedirs = [],
         linkdirs = [],
 
+        libc = True,
+        libm = True,
+        libnosys = True,
+        specs = "-specs=nano.specs",
+
         gc_sections = True,
         use_mcu_constraint = True,
 
@@ -96,6 +101,11 @@ def stm32_toolchain(
         includedirs: includedirs
         linkdirs: linkdirs
 
+        libc: Does include libc '-lc'
+        libm: Does include libm '-lm'
+        libnosys: Does include libnosys '-lnosys'
+        specs: specs for the compiler (nano, nosys, ...) by default: nano
+
         gc_sections: Enable the garbage collection of unused sections
         use_mcu_constraint: Add the mcu_constraint list (cpu / stm32 familly) to the target_compatible_with
 
@@ -117,10 +127,10 @@ def stm32_toolchain(
     if hasattr(stm32_familly_info, "fpu") and stm32_familly_info.fpu != None:
         mcu += [ stm32_familly_info.fpu_abi, stm32_familly_info.fpu ]
 
-    copts = mcu + [ "-D{}".format(mcu_device_group) ] + copts
+    copts = mcu + copts
     linkopts =  mcu + [ "-T{}".format(mcu_ldscript) ] + linkopts
 
-    defines = defines + [ "USE_HAL_DRIVER" ]
+    defines = defines + [ "USE_HAL_DRIVER", mcu_device_group ]
     includedirs = includedirs + [
         "Core/Inc",
         "Drivers/{stm32_familly}xx_HAL_Driver/Inc".format(stm32_familly = stm32_familly),
@@ -128,15 +138,11 @@ def stm32_toolchain(
         "Drivers/CMSIS/Device/ST/{stm32_familly}xx/Include".format(stm32_familly = stm32_familly),
         "Drivers/CMSIS/Include"
     ]
-    copts = copts + [
-        "-specs=nosys.specs",
-    ]
-    linkopts = linkopts + [
-        "-lc",
-        "-lm",
-        "-lnosys",
-        "-specs=nosys.specs",
-    ]    
+
+    linkopts = linkopts + ([ specs ] if specs != "" else [])
+    linkopts = linkopts + ([ "-lc" ] if libc else [])
+    linkopts = linkopts + ([ "-lm" ] if libm else [])
+    linkopts = linkopts + ([ "-lnosys" ] if libnosys else [])
 
     if gc_sections:
         copts += [ "-fdata-sections", "-ffunction-sections" ]
@@ -164,6 +170,8 @@ def stm32_toolchain(
             defines = defines,
             includedirs = includedirs,
             linkdirs = linkdirs,
+
+            add_toolchain_linkdirs = False,
 
             exec_compatible_with = exec_compatible_with,
             target_compatible_with = target_compatible_with,
