@@ -77,7 +77,7 @@ def stm32_toolchain(
         arm_none_eabi_version = "latest",
         arm_toolchain_package = None,
 
-        internal_arm_toolchain_extras_filegroup = "@bazel_utilities//:empty",
+        internal_arm_toolchain_extras_filegroups = [],
         internal_arm_toolchain_local_download = True,
         internal_arm_toolchain_auto_register = True
     ):
@@ -115,8 +115,8 @@ def stm32_toolchain(
         arm_none_eabi_version: The arm-none-eabi archive version
         arm_toolchain_package: The arm_toolchain to use
        
-        internal_arm_toolchain_extras_filegroup: internal_arm_toolchain_extras_filegroup
-        internal_arm_toolchain_local_download: If the internal arm-none-eabi toolchain is use external download
+        internal_arm_toolchain_extras_filegroups: internal_arm_toolchain_extras_filegroups
+        internal_arm_toolchain_local_download: If set to false the internal arm-none-eabi toolchain will be used as an external dependencies
         internal_arm_toolchain_auto_register: If the internal arm-none-eabi toolchain is registered to bazel using `register_toolchains`
     """
     stm32_mcu = stm32_mcu.upper()
@@ -176,9 +176,9 @@ def stm32_toolchain(
             exec_compatible_with = exec_compatible_with,
             target_compatible_with = target_compatible_with,
 
-            toolchain_extras_filegroup = internal_arm_toolchain_extras_filegroup,
+            toolchain_extras_filegroups = internal_arm_toolchain_extras_filegroups,
 
-            local_download =  internal_arm_toolchain_local_download,
+            local_download = internal_arm_toolchain_local_download,
             auto_register_toolchain = internal_arm_toolchain_auto_register,
         )
 
