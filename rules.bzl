@@ -1,7 +1,7 @@
 ""
 
 load("@bazel_arm//:rules.bzl", "arm_toolchain")
-load("@bazel_stm32//:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
+load("@bazel_stm32//mcu:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 
 def _stm32_rules_impl(rctx):
     substitutions = {
@@ -150,7 +150,7 @@ def stm32_toolchain(
 
     toolchain_mcu_constraint = [
         "@platforms//cpu:{}".format(stm32_familly_info.arm_cpu_version),
-        "@bazel_stm32//:{}".format(stm32_familly.lower()),
+        "@bazel_stm32//mcu:{}".format(stm32_familly.lower()),
     ]
 
     if use_mcu_constraint:
