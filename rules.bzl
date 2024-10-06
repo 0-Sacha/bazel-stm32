@@ -79,7 +79,9 @@ def stm32_toolchain(
 
         internal_arm_toolchain_extras_filegroups = [],
         internal_arm_toolchain_local_download = True,
-        internal_arm_toolchain_auto_register = True
+        internal_arm_toolchain_auto_register = True,
+
+        custom_stm32_info = None,
     ):
     """STM32 toolchain
 
@@ -118,11 +120,15 @@ def stm32_toolchain(
         internal_arm_toolchain_extras_filegroups: internal_arm_toolchain_extras_filegroups
         internal_arm_toolchain_local_download: If set to false the internal arm-none-eabi toolchain will be used as an external dependencies
         internal_arm_toolchain_auto_register: If the internal arm-none-eabi toolchain is registered to bazel using `register_toolchains`
+
+        custom_stm32_info: information about the mcu you are using if you don't want to use the provided STM32_FAMILLIES_LUT
     """
     stm32_mcu = stm32_mcu.upper()
     stm32_familly = stm32_mcu[:7]
 
-    stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
+    stm32_familly_info = custom_stm32_info
+    if stm32_familly_info == None:
+        stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
     mcu = [ stm32_familly_info.cpu, "-mthumb" ]
     if hasattr(stm32_familly_info, "fpu") and stm32_familly_info.fpu != None:
         mcu += [ stm32_familly_info.fpu_abi, stm32_familly_info.fpu ]
