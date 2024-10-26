@@ -13,18 +13,29 @@ def stm32_platform(name = "%{MCU_ID}"):
     # TODO: Check whether an constraint_value can be usefull
     # native.constraint_value(name = "%{MCU_ID}", constraint_setting = "")
 
-def stm32_binary(name, deps = [], **kwargs):
+def stm32_binary(
+        name,
+        ldscript,
+        startupfile,
+        deps = [],
+        linkopts = [],
+        **kwargs
+    ):
     """stm32_toolchain
 
     Args:
         name: The output binaries name
+        ldscript: ldscript
+        startupfile: startupfile
+
         deps: The deps list to forward to arm_binary -> cc_binary
+        linkopts: linkopts
         **kwargs: All others arm_binary attributes
     """
     maybe(
         native.cc_library,
         name = "%{MCU_ID}_startup",
-        srcs = [ "%{mcu_startupfile}" ],
+        srcs = [ startupfile ],
         copts = [ "-x", "assembler-with-cpp" ],
         target_compatible_with = %{target_compatible_with},
         visibility = ["//visibility:public"],
@@ -33,6 +44,7 @@ def stm32_binary(name, deps = [], **kwargs):
     arm_binary(
         name = name,
         deps = [ "%{MCU_ID}_startup" ] + deps,
+        linkopts = [ "-T{}".format(ldscript) ] + linkopts,
         target_compatible_with = %{target_compatible_with},
         **kwargs,
     )

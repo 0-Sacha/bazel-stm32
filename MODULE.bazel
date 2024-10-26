@@ -5,5 +5,9 @@
 module(
     name = "bazel_stm32",
     version = "0.0.1",
-    repo_name = "sacha_bazel_stm32",
 )
+
+bazel_dep(name = "rules_cc", version = "0.0.10")
+bazel_dep(name = "bazel_utilities", version = "0.0.1")
+bazel_dep(name = "bazel_arm", version = "0.0.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
