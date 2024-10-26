@@ -17,7 +17,7 @@ STM32F1 = struct(
 
 # ARM Cortex-M3
 STM32F2 = struct(
-    familly_name = "NOT DONE!! STM32F2",
+    familly_name = "STM32F2",
     arm_cpu_version = "armv7e-mf",
     cpu = "-mcpu=cortex-m4",
     fpu = "-mfpu=fpv4-sp-d16",
@@ -60,7 +60,7 @@ STM32H5 = struct(
     fpu_abi = "-mfloat-abi=soft",
 )
 
-# ARM Cortex-M4 with FPU
+# ARM Cortex-M7 with FPU + ARM Cortex-M4 with FPU
 # STM32H7 = stm32_toolchain(
 #     familly_name = "STM32H7",
 #     arm_cpu_version = "F7: armv7e-mf; F4: armv7e-mf",
@@ -79,15 +79,13 @@ def stm32_families_lut(stm32_families):
     """
     lut = {}
     for familly in stm32_families:
-        if len(familly.familly_name) != 7:
-            print("STM32 Familly name not len of 7: {}".format(familly.familly_name)) # buildifier: disable=print
         lut[familly.familly_name.upper()] = familly
     return lut
 
 STM32_FAMILLIES_LUT = stm32_families_lut([
     STM32F0,
     STM32F1,
-    STM32F2,
+    # STM32F2,
     STM32F3,
     STM32F4,
     STM32F7,

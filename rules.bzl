@@ -79,6 +79,8 @@ def stm32_toolchain(
         arm_none_eabi_version = "latest",
         arm_registry = None,
         arm_compiler_archive_package = None,
+
+        custom_stm32_info = None,
     ):
     """STM32 toolchain
 
@@ -117,17 +119,21 @@ def stm32_toolchain(
         arm_none_eabi_version: The arm-none-eabi archive version
         arm_registry: The arm registry to use. Default to @bazel_arm//:ARM_REGISTRY
         arm_compiler_archive_package: The arm archive to use. If none are provided, one will be define automatically with this name: ":arm-none-eabi-" + mcu
+
+        custom_stm32_info: information about the mcu you are using if you don't want to use the provided STM32_FAMILLIES_LUT
     """
     mcu = mcu.upper()
     stm32_familly = mcu[:7]
 
-    stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
+    stm32_familly_info = custom_stm32_info
+    if stm32_familly_info == None:
+        stm32_familly_info = STM32_FAMILLIES_LUT[stm32_familly]
     mcu_flags = [ stm32_familly_info.cpu, "-mthumb" ]
     if hasattr(stm32_familly_info, "fpu") and stm32_familly_info.fpu != None:
         mcu_flags += [ stm32_familly_info.fpu_abi, stm32_familly_info.fpu ]
 
     copts = mcu_flags + copts
-    linkopts =  mcu_flags + linkopts
+    linkopts = mcu_flags + linkopts
 
     defines = defines + [ "USE_HAL_DRIVER", device_group ]
     includedirs = includedirs + [
