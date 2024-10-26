@@ -2,6 +2,7 @@
 
 load("@bazel_arm//:registry.bzl", "ARM_REGISTRY")
 load("@bazel_arm//:rules.bzl", "arm_toolchain", "arm_compiler_archive")
+load("@bazel_skylib//lib:sets.bzl", "sets")
 
 load("//mcu:stm32_famillies.bzl", "STM32_FAMILLIES_LUT")
 
@@ -15,16 +16,14 @@ def _stm32_rules_impl(rctx):
         "%{MCU_ID}": rctx.attr.mcu,
         "%{MCU_FAMILLY}": rctx.attr.stm32_familly,
 
-        "%{startupfile}": rctx.path(rctx.attr.startupfile).basename,
-
         "%{exec_compatible_with}": json.encode(rctx.attr.exec_compatible_with),
         "%{target_compatible_with}": json.encode(rctx.attr.target_compatible_with),
 
         "%{toolchain_mcu_constraint}": json.encode(rctx.attr.toolchain_mcu_constraint),
     }
     rctx.template(
-        "BUILD",
-        Label("//templates:BUILD.tpl"),
+        "BUILD.bazel",
+        Label("//templates:BUILD.bazel.tpl"),
         substitutions
     )
     rctx.template(
@@ -34,19 +33,17 @@ def _stm32_rules_impl(rctx):
     )
 
 _stm32_rules = repository_rule(
+    implementation = _stm32_rules_impl,
     attrs = {
         'arm_none_eabi_repo_name': attr.string(mandatory = True),
 
         'mcu': attr.string(mandatory = True),
         'stm32_familly': attr.string(mandatory = True),
-        'startupfile': attr.label(mandatory = True, allow_single_file = True),
 
         'exec_compatible_with': attr.string_list(default = []),
         'toolchain_mcu_constraint': attr.string_list(default = []),
         'target_compatible_with': attr.string_list(default = []),
     },
-    local = False,
-    implementation = _stm32_rules_impl,
 )
 
 def stm32_toolchain(
@@ -55,9 +52,6 @@ def stm32_toolchain(
         mcu,
         device_group,
 
-        ldscript,
-        startupfile,
-
         copts = [],
         conlyopts = [],
         cxxopts = [],
@@ -65,11 +59,14 @@ def stm32_toolchain(
         defines = [],
         includedirs = [],
         linkdirs = [],
+        linklibs = [],
+        # dbg / opt
+        dbg_copts = [],
+        dbg_linkopts = [],
+        opt_copts = [],
+        opt_linkopts = [],
 
-        libc = True,
-        libm = True,
-        libnosys = True,
-        specs = "-specs=nano.specs",
+        specs = [],
 
         gc_sections = True,
 
@@ -80,11 +77,8 @@ def stm32_toolchain(
         use_mcu_constraint = True,
 
         arm_none_eabi_version = "latest",
-        arm_compiler_archive_package = None,
         arm_registry = None,
-
-        arm_toolchain_local_download = True,
-        arm_toolchain_auto_register = True
+        arm_compiler_archive_package = None,
     ):
     """STM32 toolchain
 
@@ -96,9 +90,6 @@ def stm32_toolchain(
         mcu: STM32 mcu name
         device_group: device_group
 
-        ldscript: toolchain ldscript. TODO: we may want to select the ldscript in the stm32_binary instead
-        startupfile: toolchain startupfile. TODO: we may want to select the startupfile in the stm32_binary instead
-
         copts: copts
         conlyopts: conlyopts
         cxxopts: cxxopts
@@ -106,11 +97,14 @@ def stm32_toolchain(
         defines: defines
         includedirs: includedirs
         linkdirs: linkdirs
+        linklibs: linklibs
+        # dbg / opt
+        dbg_copts: dbg_copts
+        dbg_linkopts: dbg_linkopts
+        opt_copts: opt_copts
+        opt_linkopts: opt_linkopts
 
-        libc: Does include libc '-lc'
-        libm: Does include libm '-lm'
-        libnosys: Does include libnosys '-lnosys'
-        specs: specs for the compiler (nano, nosys, ...) by default: nano
+        specs: specs for the compiler (nano, nosys, ...)
 
         gc_sections: Enable the garbage collection of unused sections
 
@@ -121,11 +115,8 @@ def stm32_toolchain(
         use_mcu_constraint: Add the mcu_constraint list (cpu / stm32 familly) to the target_compatible_with
 
         arm_none_eabi_version: The arm-none-eabi archive version
-        arm_compiler_archive_package: The arm archive to use. If none are provided, one will be define automatically with this name: ":arm-none-eabi-" + mcu
         arm_registry: The arm registry to use. Default to @bazel_arm//:ARM_REGISTRY
-
-        arm_toolchain_local_download: If set to false the internal arm-none-eabi toolchain will be used as an external dependencies
-        arm_toolchain_auto_register: If the internal arm-none-eabi toolchain is registered to bazel using `register_toolchains`
+        arm_compiler_archive_package: The arm archive to use. If none are provided, one will be define automatically with this name: ":arm-none-eabi-" + mcu
     """
     mcu = mcu.upper()
     stm32_familly = mcu[:7]
@@ -136,7 +127,7 @@ def stm32_toolchain(
         mcu_flags += [ stm32_familly_info.fpu_abi, stm32_familly_info.fpu ]
 
     copts = mcu_flags + copts
-    linkopts =  mcu_flags + [ "-T{}".format(ldscript) ] + linkopts
+    linkopts =  mcu_flags + linkopts
 
     defines = defines + [ "USE_HAL_DRIVER", device_group ]
     includedirs = includedirs + [
@@ -147,10 +138,7 @@ def stm32_toolchain(
         "Drivers/CMSIS/Include"
     ]
 
-    linkopts = linkopts + ([ specs ] if specs != "" else [])
-    linkopts = linkopts + ([ "-lc" ] if libc else [])
-    linkopts = linkopts + ([ "-lm" ] if libm else [])
-    linkopts = linkopts + ([ "-lnosys" ] if libnosys else [])
+    linkopts = linkopts
 
     if gc_sections:
         copts += [ "-fdata-sections", "-ffunction-sections" ]
@@ -179,6 +167,14 @@ def stm32_toolchain(
         defines = defines,
         includedirs = includedirs,
         linkdirs = linkdirs,
+        linklibs = linklibs,
+        # dbg / opt
+        dbg_copts = dbg_copts,
+        dbg_linkopts = dbg_linkopts,
+        opt_copts = opt_copts,
+        opt_linkopts = opt_linkopts,
+
+        specs = specs,
 
         add_toolchain_linkdirs = False,
 
@@ -186,10 +182,7 @@ def stm32_toolchain(
 
         registry = arm_registry,
 
-        auto_register_toolchain = arm_toolchain_auto_register,
-
         compiler_archive_package = arm_compiler_archive_package,
-        local_download = arm_toolchain_local_download,
     )
 
     _stm32_rules(
@@ -197,7 +190,6 @@ def stm32_toolchain(
         arm_none_eabi_repo_name = "arm-none-eabi-" + name,
         mcu = mcu,
         stm32_familly = stm32_familly,
-        startupfile = startupfile,
         toolchain_mcu_constraint = toolchain_mcu_constraint,
         target_compatible_with = target_compatible_with,
     )
@@ -211,10 +203,11 @@ def _stm32_toolchain_extension_impl(module_ctx):
     ]
     if len(arm_toolchain_versions_list) == 0:
         arm_toolchain_versions_list.append("latest")
+    arm_toolchain_versions_list = sets.to_list(sets.make(arm_toolchain_versions_list))
     arm_registry = ARM_REGISTRY
     for version in arm_toolchain_versions_list:
         arm_compiler_archive(
-            name = "stm32extension_arm-none-eabi-" + version,
+            name = "archive_arm-none-eabi-" + version,
             arm_toolchain_type = "arm-none-eabi",
             arm_toolchain_version = version,
             registry_json = json.encode(arm_registry),
@@ -228,9 +221,6 @@ def _stm32_toolchain_extension_impl(module_ctx):
                 mcu = platform.mcu,
                 device_group = platform.device_group,
 
-                ldscript = platform.ldscript,
-                startupfile = platform.startupfile,
-
                 copts = platform.copts,
                 conlyopts = platform.conlyopts,
                 cxxopts = platform.cxxopts,
@@ -238,10 +228,13 @@ def _stm32_toolchain_extension_impl(module_ctx):
                 defines = platform.defines,
                 includedirs = platform.includedirs,
                 linkdirs = platform.linkdirs,
+                linklibs = platform.linklibs,
+                # dbg / opt
+                dbg_copts = platform.dbg_copts,
+                dbg_linkopts = platform.dbg_linkopts,
+                opt_copts = platform.opt_copts,
+                opt_linkopts = platform.opt_linkopts,
 
-                libc = platform.libc,
-                libm = platform.libm,
-                libnosys = platform.libnosys,
                 specs = platform.specs,
 
                 gc_sections = platform.gc_sections,
@@ -252,10 +245,7 @@ def _stm32_toolchain_extension_impl(module_ctx):
                 target_compatible_with = platform.target_compatible_with,
                 use_mcu_constraint = platform.use_mcu_constraint,
 
-                arm_compiler_archive_package = ":stm32extension_arm-none-eabi-" + platform.arm_toolchain_version,
-                arm_registry = None,
-
-                arm_toolchain_auto_register = False, # For now, we can't access the 'native' instance in an 'module_extension'. Wait for Bazel 8 
+                arm_compiler_archive_package = "@archive_arm-none-eabi-" + platform.arm_toolchain_version,
             )
     
 stm32_toolchain_extension = module_extension(
@@ -269,9 +259,6 @@ stm32_toolchain_extension = module_extension(
             'mcu': attr.string(mandatory = True),
             'device_group': attr.string(mandatory = True),
 
-            'startupfile': attr.label(mandatory = True, allow_single_file = True),
-            'ldscript': attr.label(mandatory = True, allow_single_file = True),
-
             'exec_compatible_with': attr.string_list(default = []),
             'target_compatible_with': attr.string_list(default = []),
             'use_mcu_constraint': attr.bool(default = True),
@@ -283,12 +270,14 @@ stm32_toolchain_extension = module_extension(
             'defines': attr.string_list(default = []),
             'includedirs': attr.string_list(default = []),
             'linkdirs': attr.string_list(default = []),
-            'toolchain_libs': attr.string_list(default = []),
+            'linklibs': attr.string_list(default = []),
+            # dbg / opt
+            'dbg_copts': attr.string_list(default = []),
+            'dbg_linkopts': attr.string_list(default = []),
+            'opt_copts': attr.string_list(default = []),
+            'opt_linkopts': attr.string_list(default = []),
 
-            'libc': attr.bool(default = True),
-            'libm': attr.bool(default = True),
-            'libnosys': attr.bool(default = True),
-            'specs': attr.string(default = "-specs=nano.specs"),
+            'specs': attr.string_list(default = []),
 
             'gc_sections': attr.bool(default = True),
 
