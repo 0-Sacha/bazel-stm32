@@ -154,8 +154,8 @@ def stm32_toolchain(
 
     arm_toolchain(
         name = "arm-none-eabi-" + name,
-        arm_toolchain_type = "arm-none-eabi",
-        arm_toolchain_version = arm_none_eabi_version,
+        toolchain_type = "arm-none-eabi",
+        toolchain_version = arm_none_eabi_version,
 
         exec_compatible_with = exec_compatible_with,
         target_compatible_with = target_compatible_with,
@@ -196,20 +196,20 @@ def stm32_toolchain(
 
 
 def _stm32_toolchain_extension_impl(module_ctx):
-    arm_toolchain_versions_list = [
-        platform.arm_toolchain_version
+    toolchain_versions_list = [
+        platform.toolchain_version
         for mod in module_ctx.modules 
         for platform in mod.tags.stm32_platform
     ]
-    if len(arm_toolchain_versions_list) == 0:
-        arm_toolchain_versions_list.append("latest")
-    arm_toolchain_versions_list = sets.to_list(sets.make(arm_toolchain_versions_list))
+    if len(toolchain_versions_list) == 0:
+        toolchain_versions_list.append("latest")
+    toolchain_versions_list = sets.to_list(sets.make(toolchain_versions_list))
     arm_registry = ARM_REGISTRY
-    for version in arm_toolchain_versions_list:
+    for version in toolchain_versions_list:
         arm_compiler_archive(
             name = "archive_arm-none-eabi-" + version,
-            arm_toolchain_type = "arm-none-eabi",
-            arm_toolchain_version = version,
+            toolchain_type = "arm-none-eabi",
+            toolchain_version = version,
             registry_json = json.encode(arm_registry),
         )
     
@@ -245,7 +245,7 @@ def _stm32_toolchain_extension_impl(module_ctx):
                 target_compatible_with = platform.target_compatible_with,
                 use_mcu_constraint = platform.use_mcu_constraint,
 
-                arm_compiler_archive_package = "@archive_arm-none-eabi-" + platform.arm_toolchain_version,
+                arm_compiler_archive_package = "@archive_arm-none-eabi-" + platform.toolchain_version,
             )
     
 stm32_toolchain_extension = module_extension(
@@ -254,7 +254,7 @@ stm32_toolchain_extension = module_extension(
         "stm32_platform": tag_class(attrs = {
             'name': attr.string(mandatory = True),
 
-            'arm_toolchain_version': attr.string(default = "latest"),
+            'toolchain_version': attr.string(default = "latest"),
             
             'mcu': attr.string(mandatory = True),
             'device_group': attr.string(mandatory = True),
