@@ -4,15 +4,6 @@
 load("@%{arm_none_eabi_repo_name}//:rules.bzl", "arm_binary")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-def stm32_platform(name = "%{MCU_ID}"):
-    native.platform(
-        name = name,
-        constraint_values = %{toolchain_mcu_constraint},
-    )
-
-    # TODO: Check whether an constraint_value can be usefull
-    # native.constraint_value(name = "%{MCU_ID}", constraint_setting = "")
-
 def stm32_binary(
         name,
         ldscript,
@@ -43,7 +34,7 @@ def stm32_binary(
 
     arm_binary(
         name = name,
-        deps = [ "%{MCU_ID}_startup" ] + deps,
+        deps = [ "%{MCU_ID}_startup", ldscript ] + deps,
         linkopts = [ "-T{}".format(ldscript) ] + linkopts,
         target_compatible_with = %{target_compatible_with},
         **kwargs,
