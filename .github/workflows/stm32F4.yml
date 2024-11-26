@@ -20,7 +20,7 @@ jobs:
         path: "~/.cache/bazel"
         key: bazel
     - name: Build STM32F401CCU/HelloWorld
-      run: bazelisk build //STM32F401CCU:HelloWorld
+      run: bazelisk build //:HelloWorld
       working-directory: Examples/STM32F401CCU
 
   ubuntu-latest:
