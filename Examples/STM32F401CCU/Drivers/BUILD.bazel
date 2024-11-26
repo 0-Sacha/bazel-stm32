@@ -1,0 +1,24 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "Drivers",
+    srcs = glob([ "**/*.h", "STM32F4xx_HAL_Driver/Src/**/*.c" ]),
+    hdrs = glob([ "**/*.h" ]),
+    defines = [
+        "USE_HAL_DRIVER",
+        "STM32F401xC"
+    ],
+    includes = [
+        "STM32F4xx_HAL_Driver/Inc/",
+        "STM32F4xx_HAL_Driver/Inc/Legacy/",
+        "CMSIS/Device/ST/STM32F4xx/Include/",
+        "CMSIS/Include/"
+    ],
+    deps = [
+        "//Core:Inc"
+    ],
+    strip_include_prefix = "",
+    include_prefix = "",
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+)

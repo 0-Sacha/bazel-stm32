@@ -1,0 +1,38 @@
+""
+
+# buildifier: disable=module-docstring
+module(
+    name = "bazel_stm32_examples",
+    version = "0.1",
+)
+
+bazel_dep(name = "rules_cc", version = "0.0.10")
+bazel_dep(name = "platforms", version = "0.0.10")
+
+git_override(module_name="bazel_utilities", remote="https://github.com/0-Sacha/bazel_utilities.git", commit="aa399bb2599e2cd64a35a2275ce0f73a539524a5")
+bazel_dep(name = "bazel_utilities", version = "0.0.1", dev_dependency = True)
+git_override(module_name="bazel_arm", remote="https://github.com/0-Sacha/bazel_arm.git", commit="5f8d6ccf9915f6dc0b90655226fc518a75f7bef5")
+bazel_dep(name = "bazel_arm", version = "0.0.1", dev_dependency = True)
+local_path_override(module_name = "bazel_stm32", path = "../../")
+bazel_dep(name = "bazel_stm32", version = "0.0.1", dev_dependency = True)
+
+stm32_toolchain_extension = use_extension("@bazel_stm32//:rules.bzl", "stm32_toolchain_extension")
+inject_repo(stm32_toolchain_extension, "platforms", "bazel_utilities", "bazel_arm", "bazel_stm32")
+stm32_toolchain_extension.stm32_platform(
+    name = "STM32F401",
+
+    mcu = "STM32F401CCU6",
+    device_group = "STM32F401xC",
+    
+    copts = [],
+    cxxopts = [ "-std=c++20" ],
+    linkopts = [
+        "-lstdc++",
+        "-u _printf_float",
+    ],
+
+    specs = [ "nosys" ],
+)
+use_repo(stm32_toolchain_extension, "STM32F401")
+use_repo(stm32_toolchain_extension, "arm-none-eabi-STM32F401")
+register_toolchains("@arm-none-eabi-STM32F401//:toolchain")

@@ -1,0 +1,38 @@
+name: stm32F4
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  windows-latest:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: bazelbuild/setup-bazelisk@v3
+    - name: Mount bazel cache
+      uses: actions/cache@v4
+      with:
+        path: "~/.cache/bazel"
+        key: bazel
+    - name: Build STM32F401CCU/HelloWorld
+      run: bazelisk build //STM32F401CCU:HelloWorld
+      working-directory: Examples/STM32F401CCU
+
+  ubuntu-latest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: bazelbuild/setup-bazelisk@v3
+    - name: Mount bazel cache
+      uses: actions/cache@v4
+      with:
+        path: "~/.cache/bazel"
+        key: bazel
+    - name: Build STM32F401CCU/HelloWorld
+      run: bazelisk build //:HelloWorld
+      working-directory: Examples/STM32F401CCU
