@@ -1,0 +1,17 @@
+"""
+"""
+
+load("@STM32F401//:rules.bzl", "stm32_binary")
+
+stm32_binary(
+    name = "HelloWorld",
+    srcs = [ "main.cpp" ],
+    copts = [ "-std=c++20" ],
+    deps = [
+        "//Core:Core",
+        "//Drivers:Drivers",
+    ],
+    ldscript = "STM32F401CCUx_FLASH.ld",
+    startupfile = "startup_stm32f401xc.s",
+    visibility = ["//visibility:public"],
+)
