@@ -10,10 +10,13 @@ bazel_dep(name = "rules_cc", version = "0.0.10")
 bazel_dep(name = "platforms", version = "0.0.10")
 
 git_override(module_name="bazel_utilities", remote="https://github.com/0-Sacha/bazel_utilities.git", commit="aa399bb2599e2cd64a35a2275ce0f73a539524a5")
-bazel_dep(name = "bazel_utilities", version = "0.0.1", dev_dependency = True)
 git_override(module_name="bazel_arm", remote="https://github.com/0-Sacha/bazel_arm.git", commit="5f8d6ccf9915f6dc0b90655226fc518a75f7bef5")
-bazel_dep(name = "bazel_arm", version = "0.0.1", dev_dependency = True)
+
+# Replace with git_override from my repo `https://github.com/0-Sacha/bazel_stm32.git`
 local_path_override(module_name = "bazel_stm32", path = "../../")
+
+bazel_dep(name = "bazel_utilities", version = "0.0.1", dev_dependency = True)
+bazel_dep(name = "bazel_arm", version = "0.0.1", dev_dependency = True)
 bazel_dep(name = "bazel_stm32", version = "0.0.1", dev_dependency = True)
 
 stm32_toolchain_extension = use_extension("@bazel_stm32//:rules.bzl", "stm32_toolchain_extension")
