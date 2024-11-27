@@ -6,7 +6,7 @@ load("@STM32F401//:rules.bzl", "stm32_binary")
 stm32_binary(
     name = "HelloWorld",
     srcs = [ "main.cpp" ],
-    copts = [ "-std=c++20" ],
+    copts = [],
     deps = [
         "//Core:Core",
         "//Drivers:Drivers",
