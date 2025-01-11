@@ -9,8 +9,8 @@ module(
 bazel_dep(name = "rules_cc", version = "0.0.10")
 bazel_dep(name = "platforms", version = "0.0.10")
 
-git_override(module_name="bazel_utilities", remote="https://github.com/0-Sacha/bazel_utilities.git", commit="aa399bb2599e2cd64a35a2275ce0f73a539524a5")
-git_override(module_name="bazel_arm", remote="https://github.com/0-Sacha/bazel_arm.git", commit="5f8d6ccf9915f6dc0b90655226fc518a75f7bef5")
+git_override(module_name="bazel_utilities", remote="https://github.com/0-Sacha/bazel_utilities.git", commit="6c218400772aa3ccf8e960b918a338ab3848bbcd")
+git_override(module_name="bazel_arm", remote="https://github.com/0-Sacha/bazel_arm.git", commit="feb807880096a95358d8c71a0c0168fd8153137e")
 
 # Replace with git_override from my repo `https://github.com/0-Sacha/bazel_stm32.git`
 local_path_override(module_name = "bazel_stm32", path = "../../")
