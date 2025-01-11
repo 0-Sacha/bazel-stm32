@@ -19,7 +19,7 @@ bazel_dep(name = "bazel_utilities", version = "0.0.1", dev_dependency = True)
 bazel_dep(name = "bazel_arm", version = "0.0.1", dev_dependency = True)
 bazel_dep(name = "bazel_stm32", version = "0.0.1", dev_dependency = True)
 
-stm32_toolchain_extension = use_extension("@bazel_stm32//:rules.bzl", "stm32_toolchain_extension")
+stm32_toolchain_extension = use_extension("@bazel_stm32//:rules.bzl", "stm32_toolchain_extension", dev_dependency = True)
 inject_repo(stm32_toolchain_extension, "platforms", "bazel_utilities", "bazel_arm", "bazel_stm32")
 stm32_toolchain_extension.stm32_platform(
     name = "STM32F401",
