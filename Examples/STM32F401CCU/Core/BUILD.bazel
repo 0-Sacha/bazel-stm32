@@ -2,8 +2,8 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "Inc",
-    hdrs = glob([ "Inc/*.h" ]),
-    srcs = glob([ "Inc/*.h" ]),
+    hdrs = glob([ "Inc/*.h" ], allow_empty = True),
+    srcs = glob([ "Inc/*.h" ], allow_empty = True),
     strip_include_prefix = "Inc",
     include_prefix = "",
     visibility = ["//visibility:public"],
@@ -11,8 +11,8 @@ cc_library(
 
 cc_library(
     name = "Core",
-    srcs = glob([ "Inc/*.h", "Src/*.c" ]),
-    hdrs = glob([ "Inc/*.h" ]),
+    srcs = glob([ "Inc/*.h", "Src/*.c" ], allow_empty = True),
+    hdrs = glob([ "Inc/*.h" ], allow_empty = True),
     includes = [ "Inc/" ],
     deps = [ "//Drivers:Drivers" ],
     strip_include_prefix = "",
